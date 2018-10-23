@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 try:
   from collections import OrderedDict
 except ImportError:
@@ -28,6 +29,7 @@ from desktop.conf import is_oozie_enabled
 from desktop.lib.conf import Config, UnspecifiedConfigSection, ConfigSection,\
   coerce_json_dict, coerce_bool, coerce_csv
 
+LOG = logging.getLogger(__name__)
 
 SHOW_NOTEBOOKS = Config(
     key="show_notebooks",
@@ -41,6 +43,7 @@ def _remove_duplications(a_list):
 
 def check_permissions(user, interpreter):
   user_apps = appmanager.get_apps_dict(user)
+  LOG.warn(user_apps)
   return (interpreter == 'hive' and 'beeswax' not in user_apps) or \
          (interpreter == 'impala' and 'impala' not in user_apps) or \
          (interpreter == 'pig' and 'pig' not in user_apps) or \
@@ -53,21 +56,22 @@ def get_ordered_interpreters(user=None):
     _default_interpreters(user)
 
   interpreters = INTERPRETERS.get()
+  LOG.warn(interpreters)
   interpreters_shown_on_wheel = _remove_duplications(INTERPRETERS_SHOWN_ON_WHEEL.get())
-
+  LOG.warn(interpreters_shown_on_wheel)
   user_interpreters = []
   for interpreter in interpreters:
     if (check_permissions(user, interpreter)):
       pass # Not allowed
     else:
       user_interpreters.append(interpreter)
-
+  LOG.warn(user_interpreters)
   unknown_interpreters = set(interpreters_shown_on_wheel) - set(user_interpreters)
   if unknown_interpreters:
     raise ValueError("Interpreters from interpreters_shown_on_wheel is not in the list of Interpreters %s" % unknown_interpreters)
 
   reordered_interpreters = interpreters_shown_on_wheel + [i for i in user_interpreters if i not in interpreters_shown_on_wheel]
-
+  LOG.warn(reordered_interpreters)
   return [{
       "name": interpreters[i].NAME.get(),
       "type": i,

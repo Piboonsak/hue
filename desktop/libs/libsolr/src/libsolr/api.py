@@ -859,7 +859,7 @@ class SolrApi(object):
 
       response = self._root.post('admin/collections', params=params, contenttype='application/json')
       if 'success' in response:
-        return True
+        return response
       else:
         LOG.error("Could not create collection. Check response:\n%s" % json.dumps(response, indent=2))
         return False

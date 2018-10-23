@@ -24,7 +24,7 @@ import xxd
 
 from subprocess import Popen, PIPE
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 LENGTH = 1024*10 # 10KB
 
@@ -54,6 +54,8 @@ class XxdTest(unittest.TestCase):
     return "\n".join(self._remove_padding(line) for line in xxd_output.splitlines())
 
   def _verify_content(self, expected, actual):
+    LOG.warn(expected)
+    LOG.warn(actual)
     if self._is_offset_width_same(expected, actual):
       self.assertEquals(expected, actual)
     else:
@@ -76,7 +78,7 @@ class XxdTest(unittest.TestCase):
     # /dev/random tends to hang on Linux, so we use python instead.
     # It's inefficient, but it's not terrible.
     random_text = "".join(chr(random.getrandbits(8)) for _ in range(LENGTH))
-    p = Popen(["xxd"], shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+    p = Popen(["xxd"], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
     (stdin, stderr) = p.communicate(random_text)
     self.assertFalse(stderr)
 

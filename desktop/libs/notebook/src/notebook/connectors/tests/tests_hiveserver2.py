@@ -618,6 +618,12 @@ class TestHiveserver2ApiWithHadoop(BeeswaxSampleProvider):
 
 
   def test_explain(self):
+    try:
+      LOG.warn(self.user.id)
+      test_user = User.objects.get(username=self.user.username)
+      LOG.warn(self.user.id)
+    except Exception, e:
+      LOG.exception(e)
     # Hive 2 with Tez set hive.explain.user to true by default, but this test is expecting output when this setting
     # is set to false.
     doc = self.create_query_document(owner=self.user, statement=self.statement)
@@ -625,6 +631,11 @@ class TestHiveserver2ApiWithHadoop(BeeswaxSampleProvider):
     snippet = self.get_snippet(notebook, snippet_idx=0)
     snippet['properties']['settings'].append({"key": "hive.explain.user", "value": "false"})
 
+    try:
+      test_user = User.objects.get(username=self.user.username)
+      LOG.warn(self.user.id)
+    except Exception, e:
+      LOG.exception(e)
     response = self.client.post(reverse('notebook:explain'),
                                 {'notebook': notebook.get_json(), 'snippet': json.dumps(snippet)})
 
@@ -850,11 +861,14 @@ class TestHiveserver2ApiWithHadoop(BeeswaxSampleProvider):
       notebook = Notebook(document=doc)
       snippet = self.execute_and_wait(doc, snippet_idx=0, timeout=60.0, wait=5.0)
 
-      self.client.post(reverse('notebook:fetch_result_data'),
+      response = self.client.post(reverse('notebook:fetch_result_data'),
                        {'notebook': notebook.get_json(), 'snippet': json.dumps(snippet), 'rows': 100, 'startOver': 'false'})
+      
+      LOG.warn(response.content)
 
       response = self.client.post(reverse('notebook:fetch_result_size'),
                                   {'notebook': notebook.get_json(), 'snippet': json.dumps(snippet)})
+      LOG.warn(response.content)
 
       data = json.loads(response.content)
       assert_equal(0, data['status'], data)

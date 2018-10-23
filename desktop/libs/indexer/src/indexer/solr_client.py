@@ -111,7 +111,7 @@ class SolrClient(object):
         # Note: uniqueKey is always 'id'
         self.api.create_config(name, config_name, immutable=False)
 
-        self.api.create_collection2(name, config_name=name, shards=shards, replication=replication)
+        response = self.api.create_collection2(name, config_name=name, shards=shards, replication=replication)
 
         fields = [{
             'name': field['name'],
@@ -139,9 +139,10 @@ class SolrClient(object):
               "maxErrors": "100"
             }
           })
+        return response
       else:
         self._create_cloud_config(name, fields, unique_key_field, df)
-        self.api.create_collection2(name, config_name=config_name, shards=shards, replication=replication)
+        return self.api.create_collection2(name, config_name=config_name, shards=shards, replication=replication)
     else:
       self._create_non_solr_cloud_index(name, fields, unique_key_field, df)
 

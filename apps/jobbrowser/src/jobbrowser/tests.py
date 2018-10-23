@@ -497,6 +497,7 @@ class TestResourceManagerHaNoHadoop:
     # Beware: Monkey patching
     if not hasattr(resource_manager_api, 'old_get_resource_manager_api'):
       resource_manager_api.old_ResourceManagerApi = resource_manager_api.ResourceManagerApi
+      #resource_manager_api.old_get_resource_manager = resource_manager_api.get_resource_manager
     if not hasattr(mapreduce_api, 'old_get_mapreduce_api'):
       mapreduce_api.old_get_mapreduce_api = mapreduce_api.get_mapreduce_api
     if not hasattr(history_server_api, 'old_get_history_server_api'):
@@ -505,8 +506,10 @@ class TestResourceManagerHaNoHadoop:
     self.c = make_logged_in_client(is_superuser=False)
     grant_access("test", "test", "jobbrowser")
     self.user = User.objects.get(username='test')
-
-    resource_manager_api.ResourceManagerApi =  MockResourceManagerHaApi
+    
+    #mock = MockResourceManagerHaApi('', False, False)
+    resource_manager_api.ResourceManagerApi = MockResourceManagerHaApi
+    #resource_manager_api.get_resource_manager = lambda username: mock
     mapreduce_api.get_mapreduce_api = lambda username: MockMapreduceHaApi(username)
     history_server_api.get_history_server_api = lambda username: HistoryServerHaApi(username)
 
@@ -514,6 +517,8 @@ class TestResourceManagerHaNoHadoop:
 
   def tearDown(self):
     resource_manager_api.ResourceManagerApi = getattr(resource_manager_api, 'old_ResourceManagerApi')
+    resource_manager_api.API_CACHE = None
+    resource_manager_api.get_resource_manager = getattr(resource_manager_api, 'old_get_resource_manager')
     mapreduce_api.get_mapreduce_api = getattr(mapreduce_api, 'old_get_mapreduce_api')
     history_server_api.get_history_server_api = getattr(history_server_api, 'old_get_history_server_api')
 

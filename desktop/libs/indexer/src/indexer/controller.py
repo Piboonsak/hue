@@ -136,13 +136,13 @@ class CollectionManagerController(object):
     Create schema.xml file so that we can set UniqueKey field.
     """
     if self.is_solr_cloud_mode():
-      self._create_solr_cloud_collection(name, fields, unique_key_field, df)
+      return self._create_solr_cloud_collection(name, fields, unique_key_field, df)
     else:
       self._create_non_solr_cloud_collection(name, fields, unique_key_field, df)
 
   def _create_solr_cloud_collection(self, name, fields, unique_key_field, df):
     client = SolrClient(self.user)
-
+    LOG.warn(client.get_zookeeper_host())
     with ZookeeperClient(hosts=client.get_zookeeper_host(), read_only=False) as zc:
       root_node = '%s/%s' % (ZK_SOLR_CONFIG_NAMESPACE, name)
 
@@ -165,15 +165,17 @@ class CollectionManagerController(object):
       finally:
         # Don't want directories laying around
         shutil.rmtree(tmp_path)
-
+      LOG.warn(SOLR_URL.get())
       api = SolrApi(SOLR_URL.get(), self.user, SECURITY_ENABLED.get())
-      if not api.create_collection(name):
+      response = api.create_collection(name)
+      if not response:
         # Delete instance directory if we couldn't create a collection.
         try:
           zc.delete_path(root_node)
         except Exception, e:
           raise PopupException(_('Error in deleting Solr configurations.'), detail=e)
         raise PopupException(_('Could not create collection. Check error logs for more info.'))
+      return response
 
   def _create_non_solr_cloud_collection(self, name, fields, unique_key_field, df):
     # Non-solrcloud mode

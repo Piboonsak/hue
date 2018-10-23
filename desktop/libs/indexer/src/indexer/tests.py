@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import json
+import logging
 
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_equal, assert_true, assert_false
@@ -32,6 +33,7 @@ from libzookeeper import conf as libzookeeper_conf
 from indexer.conf import get_solr_ensemble
 from indexer.controller import CollectionManagerController
 
+LOG = logging.getLogger(__name__)
 
 def test_get_ensemble():
 
@@ -93,7 +95,10 @@ class TestIndexerWithSolr:
 
     # We get exceptions if problems in both case there
     try:
-      self.db.create_collection(name, fields, unique_key_field='id', df='my_text')
+      resp = self.db.create_collection(name, fields, unique_key_field='id', df='my_text')
+      LOG.warn(resp)
+    except Exception, ee:
+      LOG.error(e)
     finally:
       self.db.delete_collection(name, core=False)
 
